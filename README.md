@@ -1,5 +1,9 @@
 # agent-comply
 
+[![Part of Preflight](https://img.shields.io/badge/suite-Preflight-blue)](https://github.com/StanislavBG/agent-gate)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)]()
+[![License](https://img.shields.io/badge/license-MIT-green)]()
+
 **EU AI Act compliance CLI — classify, check, and report AI system compliance.**
 
 ---
@@ -176,7 +180,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm install -g agent-comply
+      - run: npm install -g github:StanislavBG/agent-comply
       - run: agent-comply check policy.yaml
 ```
 
