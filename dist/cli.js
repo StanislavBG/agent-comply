@@ -42,8 +42,9 @@ program
     .option('--config <path>', 'Path to comply.yaml (default: ./comply.yaml)')
     .option('--policy <path>', 'Path to policy.yaml (optional, adds violation checks)')
     .option('--standard <name>', 'Compliance standard to reference (e.g. eu-ai-act)', 'eu-ai-act')
+    .option('--format <format>', 'Output format: sarif, junit (for CI integration)')
     .action((opts) => {
-    runReport(opts.config, opts.policy, opts.standard);
+    runReport(opts.config, opts.policy, opts.standard, opts.format);
 });
 program.parse();
 //# sourceMappingURL=cli.js.map
