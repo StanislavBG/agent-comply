@@ -6,6 +6,11 @@ import { buildReport, formatReport, formatSarif, formatJunit } from '../reporter
 import { guard } from '@preflight/license';
 
 export function runReport(configPath?: string, policyPath?: string, standard?: string, format?: string): void {
+  // Gate paid formats immediately — before any expensive work
+  if (format === 'sarif' || format === 'junit') {
+    guard('team', { feature: `--format ${format}` });
+  }
+
   if (standard && standard !== 'eu-ai-act') {
     console.error(`Unknown standard: ${standard}. Supported: eu-ai-act`);
     process.exit(1);
@@ -43,10 +48,6 @@ export function runReport(configPath?: string, policyPath?: string, standard?: s
   }
 
   const report = buildReport(config, violations);
-
-  if (format === 'sarif' || format === 'junit') {
-    guard('team', { feature: `--format ${format}` });
-  }
 
   if (format === 'sarif') {
     console.log(formatSarif(report));
