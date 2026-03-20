@@ -1,0 +1,53 @@
+{
+  "name": "agent-comply",
+  "version": "0.1.0",
+  "description": "AI compliance CLI for EU AI Act documentation and verification",
+  "main": "dist/cli.js",
+  "bin": {
+    "agent-comply": "dist/cli.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "README.md"
+  ],
+  "keywords": [
+    "ai",
+    "compliance",
+    "eu-ai-act",
+    "sbom",
+    "model-card",
+    "cli",
+    "regulation"
+  ],
+  "author": "Bilko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^12.1.0",
+    "glob": "^11.1.0",
+    "js-yaml": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.19.37",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  },
+  "directories": {
+    "example": "examples",
+    "test": "tests"
+  }
+}

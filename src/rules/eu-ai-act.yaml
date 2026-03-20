@@ -1,0 +1,110 @@
+risk_tiers:
+  unacceptable:
+    description: "Prohibited AI practices under EU AI Act Article 5"
+    patterns:
+      - social_scoring
+      - subliminal_manipulation
+      - biometric_real_time_public
+    keywords: ["social credit", "citizen score", "subliminal", "real-time biometric surveillance"]
+
+  high:
+    description: "High-risk AI systems under Annex III"
+    patterns:
+      - biometric_identification
+      - critical_infrastructure
+      - education_scoring
+      - employment_decisions
+      - essential_services
+      - law_enforcement
+      - border_control
+      - justice_administration
+    keywords: ["biometric", "facial recognition", "credit scoring", "recruitment AI", "job screening", "criminal", "border"]
+    requirements:
+      - human_oversight_declaration
+      - model_card
+      - data_documentation
+      - risk_management_system
+      - technical_documentation
+
+  limited:
+    description: "Limited risk AI with transparency obligations"
+    patterns:
+      - chatbot
+      - content_generation
+      - deepfake
+      - emotion_recognition
+    keywords: ["chatbot", "chat", "content generation", "text generation", "image generation", "deepfake", "synthetic media", "emotion"]
+    requirements:
+      - transparency_notice
+      - disclosure_to_users
+
+  minimal:
+    description: "Minimal or no risk AI"
+    patterns:
+      - spam_filter
+      - recommendation
+      - internal_analytics
+      - code_assist
+    keywords: ["recommendation", "analytics", "spam", "search", "autocomplete", "code completion", "internal"]
+
+model_patterns:
+  openai:
+    models: ["gpt-4", "gpt-3.5", "gpt-4o", "gpt-4-turbo", "davinci", "curie", "babbage", "ada", "text-embedding", "dall-e", "whisper", "tts-1"]
+    default_tier: limited
+  anthropic:
+    models: ["claude", "claude-3", "claude-2", "claude-instant", "claude-opus", "claude-sonnet", "claude-haiku"]
+    default_tier: limited
+  google:
+    models: ["gemini", "gemini-pro", "gemini-ultra", "palm", "bard", "vertex"]
+    default_tier: limited
+  huggingface:
+    models: ["bert", "gpt2", "roberta", "distilbert", "llama", "mistral", "falcon", "bloom"]
+    default_tier: limited
+  azure:
+    models: ["azure-openai", "azure-cognitive", "azure-ml"]
+    default_tier: limited
+  aws:
+    models: ["bedrock", "rekognition", "comprehend", "textract", "sagemaker"]
+    default_tier: limited
+  meta:
+    models: ["llama", "llama2", "llama-2", "llama3", "llama-3", "opt", "metaseq"]
+    default_tier: limited
+  cohere:
+    models: ["command", "embed", "rerank", "generate"]
+    default_tier: limited
+
+import_patterns:
+  - pattern: "openai"
+    provider: openai
+  - pattern: "@anthropic-ai"
+    provider: anthropic
+  - pattern: "anthropic"
+    provider: anthropic
+  - pattern: "@google/generative-ai"
+    provider: google
+  - pattern: "google-generativeai"
+    provider: google
+  - pattern: "@google-cloud/aiplatform"
+    provider: google
+  - pattern: "huggingface"
+    provider: huggingface
+  - pattern: "@huggingface"
+    provider: huggingface
+  - pattern: "transformers"
+    provider: huggingface
+  - pattern: "cohere-ai"
+    provider: cohere
+  - pattern: "azure-cognitiveservices"
+    provider: azure
+  - pattern: "@azure/ai"
+    provider: azure
+  - pattern: "aws-sdk.*bedrock"
+    provider: aws
+  - pattern: "@aws-sdk.*bedrock"
+    provider: aws
+  - pattern: "replicate"
+    provider: replicate
+  - pattern: "langchain"
+    provider: langchain
+  - pattern: "llamaindex"
+    provider: llamaindex

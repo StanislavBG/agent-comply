@@ -1,0 +1,36 @@
+project:
+  name: my-ai-app
+  version: "1.0.0"
+  owner: engineering@example.com
+
+models:
+  - id: gpt4-assistant
+    provider: openai
+    use_case: "customer support chatbot"
+    risk_tier: limited
+    human_oversight: true
+    data_categories:
+      - user_messages
+      - session_data
+
+  - id: claude-analyst
+    provider: anthropic
+    use_case: "internal analytics summarization"
+    risk_tier: minimal
+    human_oversight: false
+    data_categories:
+      - anonymized_analytics
+
+agents:
+  - id: support-agent
+    model: gpt4-assistant
+    tools:
+      - search_knowledge_base
+      - create_ticket
+    outputs_affect_humans: true
+
+  - id: analytics-agent
+    model: claude-analyst
+    tools:
+      - query_database
+    outputs_affect_humans: false

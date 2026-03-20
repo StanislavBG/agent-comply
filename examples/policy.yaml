@@ -1,0 +1,41 @@
+name: EU AI Act Baseline Policy
+version: "1.0.0"
+
+rules:
+  - id: OVERSIGHT_HIGH_RISK
+    description: "High-risk systems must have human oversight enabled"
+    severity: error
+    condition:
+      field: models[].human_oversight
+      operator: not_equals
+      value: false
+
+  - id: DATA_CATEGORIES_REQUIRED
+    description: "All models must declare data categories they process"
+    severity: error
+    condition:
+      field: models[].data_categories
+      operator: required
+
+  - id: OWNER_REQUIRED
+    description: "Project must have a declared owner (accountability)"
+    severity: error
+    condition:
+      field: project.owner
+      operator: required
+
+  - id: NO_PROHIBITED_TIER
+    description: "No AI system may operate at prohibited risk tier"
+    severity: error
+    condition:
+      field: models[].risk_tier
+      operator: not_in
+      value:
+        - prohibited
+
+  - id: HIGH_RISK_USE_CASE_DOCS
+    description: "High-risk models must declare use_case for documentation"
+    severity: warning
+    condition:
+      field: models[].use_case
+      operator: required
