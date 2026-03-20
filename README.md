@@ -9,7 +9,8 @@ You're shipping an AI agent. Someone on legal asks "are we compliant with the EU
 agent-comply turns that into a 90-second CLI run.
 
 ```bash
-npm install -g agent-comply
+# Install from GitHub (npm package coming soon)
+npm install -g github:StanislavBG/agent-comply
 ```
 
 ---
@@ -236,3 +237,21 @@ MIT
 ---
 
 *agent-comply — because "we checked manually" doesn't hold up in an audit.*
+
+---
+
+## Part of the Preflight suite
+
+agent-comply is one tool in a suite of AI agent pre-deploy checks:
+
+| Tool | Purpose | Install |
+|------|---------|---------|
+| **stepproof** | Behavioral regression testing | `npm install -g github:StanislavBG/stepproof` |
+| **agent-comply** | EU AI Act compliance scanning | `npm install -g github:StanislavBG/agent-comply` |
+| **agent-gate** | Unified pre-deploy CI gate | `npm install -g github:StanislavBG/agent-gate` |
+| **agent-shift** | Config versioning + environment promotion | `npm install -g github:StanislavBG/agent-shift` |
+
+Install the full suite:
+```bash
+npm install -g github:StanislavBG/agent-gate github:StanislavBG/stepproof github:StanislavBG/agent-comply github:StanislavBG/agent-shift
+```
