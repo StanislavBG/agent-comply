@@ -13,7 +13,12 @@ export function runCheck(policyPath: string, configPath?: string): void {
   }
   if (!existsSync(resolvedConfig)) {
     console.error(`Comply config not found: ${resolvedConfig}`);
-    console.error('Run `agent-comply init` to create one, or specify path with --config <path>');
+    console.error('comply.yaml is your AI model inventory. Generate one with:');
+    console.error('  agent-comply init         # scaffold comply.yaml');
+    console.error('  agent-comply classify .   # detect AI usage from your codebase');
+    if (!configPath) {
+      console.error('Or specify a different path: --config <path>');
+    }
     process.exit(1);
   }
 

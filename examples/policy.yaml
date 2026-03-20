@@ -2,13 +2,12 @@ name: EU AI Act Baseline Policy
 version: "1.0.0"
 
 rules:
-  - id: OVERSIGHT_HIGH_RISK
-    description: "High-risk systems must have human oversight enabled"
-    severity: error
+  - id: OVERSIGHT_ALL_MODELS
+    description: "All models must have human_oversight declared (set true for user-facing systems, false only for internal non-user-facing)"
+    severity: warning
     condition:
       field: models[].human_oversight
-      operator: not_equals
-      value: false
+      operator: required
 
   - id: DATA_CATEGORIES_REQUIRED
     description: "All models must declare data categories they process"

@@ -3,6 +3,8 @@ import { Command } from 'commander';
 import { runClassify } from './commands/classify.js';
 import { runCheck } from './commands/check.js';
 import { runReport } from './commands/report.js';
+import { runScan } from './commands/scan.js';
+import { runInit } from './commands/init.js';
 
 const program = new Command();
 
@@ -10,6 +12,21 @@ program
   .name('agent-comply')
   .description('EU AI Act compliance CLI — classify, check, and report AI system compliance')
   .version('0.1.0');
+
+program
+  .command('init')
+  .description('Generate a comply.yaml scaffold (auto-detects AI providers in current directory)')
+  .option('--output <path>', 'Output path (default: ./comply.yaml)')
+  .action((opts: { output?: string }) => {
+    runInit(opts.output);
+  });
+
+program
+  .command('scan <path>')
+  .description('Detect AI provider usage in a codebase (raw scan, no classification)')
+  .action((targetPath: string) => {
+    runScan(targetPath);
+  });
 
 program
   .command('classify <path>')
@@ -31,8 +48,9 @@ program
   .description('Generate a compliance summary report')
   .option('--config <path>', 'Path to comply.yaml (default: ./comply.yaml)')
   .option('--policy <path>', 'Path to policy.yaml (optional, adds violation checks)')
-  .action((opts: { config?: string; policy?: string }) => {
-    runReport(opts.config, opts.policy);
+  .option('--standard <name>', 'Compliance standard to reference (e.g. eu-ai-act)', 'eu-ai-act')
+  .action((opts: { config?: string; policy?: string; standard?: string }) => {
+    runReport(opts.config, opts.policy, opts.standard);
   });
 
 program.parse();

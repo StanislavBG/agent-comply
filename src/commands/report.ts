@@ -4,7 +4,11 @@ import { parseComplyConfig, parsePolicyConfig } from '../parser/index.js';
 import { checkCompliance } from '../checker/index.js';
 import { buildReport, formatReport } from '../reporter/index.js';
 
-export function runReport(configPath?: string, policyPath?: string): void {
+export function runReport(configPath?: string, policyPath?: string, standard?: string): void {
+  if (standard && standard !== 'eu-ai-act') {
+    console.error(`Unknown standard: ${standard}. Supported: eu-ai-act`);
+    process.exit(1);
+  }
   const resolvedConfig = configPath ? resolve(configPath) : resolve(process.cwd(), 'comply.yaml');
 
   if (!existsSync(resolvedConfig)) {

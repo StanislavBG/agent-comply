@@ -1,5 +1,6 @@
-import { readFileSync } from 'fs';
+import { readFileSync, statSync } from 'fs';
 import { globSync } from 'glob';
+import { resolve, relative } from 'path';
 import type { ScanResult } from '../types/index.js';
 
 interface ProviderPattern {
@@ -79,6 +80,19 @@ const PROVIDER_PATTERNS: ProviderPattern[] = [
       /@aws-sdk\/client-bedrock/,
     ],
   },
+  {
+    // Claude CLI invocation — used by autonomous agent systems like Bilko
+    // that call the claude binary directly instead of using the SDK
+    provider: 'anthropic-cli',
+    patterns: [
+      /spawn\s*\(\s*['"]claude['"]/,
+      /exec\s*\(\s*['"]claude\s/,
+      /execFile\s*\(\s*['"]claude['"]/,
+      /execa\s*\(\s*['"]claude['"]/,
+      /['"](claude)\s+-p/,
+      /claude\s+--no-session/,
+    ],
+  },
 ];
 
 const SCAN_EXTENSIONS = ['ts', 'js', 'mts', 'mjs', 'py', 'go', 'rs'];
@@ -86,11 +100,22 @@ const EXCLUDE_DIRS = ['node_modules', 'dist', '.git', '__pycache__', 'target', '
 
 export function scanDirectory(rootDir: string): ScanResult[] {
   const results: ScanResult[] = [];
+  const absRoot = resolve(rootDir);
 
-  const pattern = `**/*.{${SCAN_EXTENSIONS.join(',')}}`;
-  const ignore = EXCLUDE_DIRS.map(d => `**/${d}/**`);
-
-  const files = globSync(pattern, { cwd: rootDir, ignore, absolute: true });
+  // Handle single-file targets
+  let files: string[];
+  try {
+    const stat = statSync(absRoot);
+    if (stat.isFile()) {
+      files = [absRoot];
+    } else {
+      const pattern = `**/*.{${SCAN_EXTENSIONS.join(',')}}`;
+      const ignore = EXCLUDE_DIRS.map(d => `**/${d}/**`);
+      files = globSync(pattern, { cwd: absRoot, ignore, absolute: true });
+    }
+  } catch {
+    return results;
+  }
 
   for (const file of files) {
     let content: string;
@@ -100,6 +125,7 @@ export function scanDirectory(rootDir: string): ScanResult[] {
       continue;
     }
 
+    const relPath = relative(absRoot, file) || file; // for single-file, use basename
     const lines = content.split('\n');
     const seen = new Set<string>(); // dedupe per file per provider
 
@@ -112,7 +138,7 @@ export function scanDirectory(rootDir: string): ScanResult[] {
         for (const pattern of patterns) {
           if (pattern.test(line)) {
             results.push({
-              file: file.replace(rootDir + '/', ''),
+              file: relPath,
               line: i + 1,
               provider,
               pattern: pattern.source,
