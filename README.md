@@ -213,6 +213,40 @@ See [`/examples`](./examples):
 
 ---
 
+## Structured reports (v0.2.0)
+
+agent-comply outputs machine-readable SARIF 2.1.0 and JUnit XML for CI pipeline integration.
+
+```bash
+# SARIF — GitHub Advanced Security / GitLab / Azure DevOps
+agent-comply report --format sarif
+agent-comply report --policy policy.yaml --format sarif
+
+# JUnit XML — Jenkins / CircleCI / TeamCity
+agent-comply report --format junit
+```
+
+Integrate with GitHub Advanced Security:
+
+```yaml
+# .github/workflows/compliance.yml
+- name: Run compliance check
+  run: agent-comply check policy.yaml
+
+- name: Export SARIF for Security tab
+  run: agent-comply report --policy policy.yaml --format sarif > compliance.sarif
+
+- name: Upload to GitHub Security tab
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: compliance.sarif
+  if: always()
+```
+
+EU AI Act compliance violations appear as code scanning alerts in your GitHub Security tab. Default output (no `--format` flag) is unchanged — human-readable terminal output.
+
+---
+
 ## Part of the Preflight suite
 
 agent-comply is one tool in a suite of AI agent pre-deploy checks:
