@@ -2,9 +2,9 @@ import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { parseComplyConfig, parsePolicyConfig } from '../parser/index.js';
 import { checkCompliance } from '../checker/index.js';
-import { buildReport, formatReport } from '../reporter/index.js';
+import { buildReport, formatReport, formatSarif, formatJunit } from '../reporter/index.js';
 
-export function runReport(configPath?: string, policyPath?: string, standard?: string): void {
+export function runReport(configPath?: string, policyPath?: string, standard?: string, format?: string): void {
   if (standard && standard !== 'eu-ai-act') {
     console.error(`Unknown standard: ${standard}. Supported: eu-ai-act`);
     process.exit(1);
@@ -42,5 +42,12 @@ export function runReport(configPath?: string, policyPath?: string, standard?: s
   }
 
   const report = buildReport(config, violations);
-  console.log(formatReport(report));
+
+  if (format === 'sarif') {
+    console.log(formatSarif(report));
+  } else if (format === 'junit') {
+    console.log(formatJunit(report));
+  } else {
+    console.log(formatReport(report));
+  }
 }

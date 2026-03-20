@@ -1,5 +1,72 @@
 import type { ComplyConfig, CheckViolation, ComplianceReport, RiskTier } from '../types/index.js';
 
+export function formatSarif(report: ComplianceReport): string {
+  const rules = Array.from(
+    new Map(report.violations.map(v => [v.rule_id, v])).values()
+  ).map(v => ({
+    id: v.rule_id,
+    name: v.rule_id,
+    shortDescription: { text: v.description },
+  }));
+
+  const results = report.violations.map(v => ({
+    ruleId: v.rule_id,
+    level: v.severity === 'error' ? 'error' : 'warning',
+    message: { text: `${v.description} ${v.context}` },
+  }));
+
+  const sarif = {
+    $schema: 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json',
+    version: '2.1.0',
+    runs: [
+      {
+        tool: {
+          driver: {
+            name: 'agent-comply',
+            version: '0.1.0',
+            rules,
+          },
+        },
+        results,
+      },
+    ],
+  };
+
+  return JSON.stringify(sarif, null, 2);
+}
+
+export function formatJunit(report: ComplianceReport): string {
+  const projectName = report.project.name;
+  const violations = report.violations;
+  const failureCount = violations.filter(v => v.severity === 'error').length;
+
+  const escape = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  let testcases: string;
+  if (violations.length === 0) {
+    testcases = `    <testcase name="compliance-check" classname="${escape(projectName)}"/>`;
+  } else {
+    testcases = violations
+      .map(v => {
+        const msg = escape(`${v.description} ${v.context}`);
+        return `    <testcase name="${escape(v.rule_id)}" classname="${escape(projectName)}">\n      <failure message="${msg}">${msg}</failure>\n    </testcase>`;
+      })
+      .join('\n');
+  }
+
+  const lines = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    `<testsuites name="agent-comply">`,
+    `  <testsuite name="${escape(projectName)} compliance" tests="${violations.length || 1}" failures="${failureCount}">`,
+    testcases,
+    `  </testsuite>`,
+    `</testsuites>`,
+  ];
+
+  return lines.join('\n');
+}
+
 export function buildReport(
   config: ComplyConfig,
   violations: CheckViolation[]
