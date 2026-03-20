@@ -3,6 +3,7 @@ import { resolve } from 'path';
 import { parseComplyConfig, parsePolicyConfig } from '../parser/index.js';
 import { checkCompliance } from '../checker/index.js';
 import { buildReport, formatReport, formatSarif, formatJunit } from '../reporter/index.js';
+import { guard } from '@preflight/license';
 export function runReport(configPath, policyPath, standard, format) {
     if (standard && standard !== 'eu-ai-act') {
         console.error(`Unknown standard: ${standard}. Supported: eu-ai-act`);
@@ -39,6 +40,9 @@ export function runReport(configPath, policyPath, standard, format) {
         }
     }
     const report = buildReport(config, violations);
+    if (format === 'sarif' || format === 'junit') {
+        guard('team', { feature: `--format ${format}` });
+    }
     if (format === 'sarif') {
         console.log(formatSarif(report));
     }
