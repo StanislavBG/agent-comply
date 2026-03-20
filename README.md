@@ -213,16 +213,21 @@ See [`/examples`](./examples):
 
 ---
 
-## How this relates to the Preflight suite
+## Part of the Preflight suite
 
-| Tool | When to use it |
-|------|---------------|
-| **stepproof** | Before deploy: regression test your agent's behavior |
-| **agent-comply** | Before deploy: verify EU AI Act compliance policy |
-| **agent-gate** | In CI: unified pass/fail gate wrapping both tools |
-| **agent-shift** | After gate passes: promote config safely to production |
+agent-comply is one tool in a suite of AI agent pre-deploy checks:
 
-Use `agent-comply` directly during development. Use `agent-gate` in CI as the final unified gate.
+| Tool | Purpose | Install |
+|------|---------|---------|
+| **stepproof** | Behavioral regression testing | `npm install -g github:StanislavBG/stepproof` |
+| **agent-comply** | EU AI Act compliance scanning | `npm install -g github:StanislavBG/agent-comply` |
+| **agent-gate** | Unified pre-deploy CI gate | `npm install -g github:StanislavBG/agent-gate` |
+| **agent-shift** | Config versioning + environment promotion | `npm install -g github:StanislavBG/agent-shift` |
+
+Install the full suite:
+```bash
+npm install -g github:StanislavBG/agent-gate github:StanislavBG/stepproof github:StanislavBG/agent-comply github:StanislavBG/agent-shift
+```
 
 ---
 
