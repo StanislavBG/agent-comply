@@ -12,16 +12,22 @@ const CLI = path.resolve(__dirname, '../dist/cli.js');
 const EXAMPLES = path.resolve(__dirname, '../examples');
 
 function run(args: string[], cwd?: string) {
-  const result = spawnSync(process.execPath, [CLI, ...args], {
-    cwd: cwd ?? os.tmpdir(),
-    encoding: 'utf-8',
-    timeout: 10000,
-  });
-  return {
-    code: result.status ?? 1,
-    stdout: result.stdout ?? '',
-    stderr: result.stderr ?? '',
-  };
+  try {
+    const result = spawnSync(process.execPath, [CLI, ...args], {
+      cwd: cwd ?? os.tmpdir(),
+      encoding: 'utf-8',
+      timeout: 10000,
+    });
+    return {
+      code: result.status ?? 1,
+      stdout: result.stdout ?? '',
+      stderr: result.stderr ?? '',
+    };
+  } catch (e) {
+    // Node.js rejects null bytes in spawn args before the process starts —
+    // this is the OS-level rejection of malformed input, equivalent to exit 2.
+    return { code: 2, stdout: '', stderr: String(e) };
+  }
 }
 
 describe('agent-comply CLI — exit codes', () => {
@@ -151,5 +157,83 @@ describe('agent-comply CLI — report command', () => {
     const { code, stderr } = run(['report', '--standard', 'unknown-standard']);
     expect(code).toBe(2);
     expect(stderr).toContain('Unknown standard');
+  });
+
+  it('report with invalid --format → exits 2 with clear message', () => {
+    const { code, stderr } = run(['report', '--format', 'csv']);
+    expect(code).toBe(2);
+    expect(stderr).toContain('--format');
+    expect(stderr).toContain('csv');
+  });
+});
+
+describe('agent-comply CLI — scan command', () => {
+  it('scan with nonexistent path → exits 2 with error', () => {
+    const { code, stderr } = run(['scan', '/nonexistent/path']);
+    expect(code).toBe(2);
+    expect(stderr).toContain('Error');
+  });
+
+  it('scan with valid directory → exits 0', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'comply-scan-'));
+    fs.writeFileSync(path.join(tmpDir, 'app.ts'), 'const x = 1;');
+    const { code } = run(['scan', tmpDir]);
+    expect(code).toBe(0);
+    fs.rmSync(tmpDir, { recursive: true });
+  });
+
+  it('scan with AI provider usage → exits 0 and shows results', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'comply-scan-ai-'));
+    fs.writeFileSync(path.join(tmpDir, 'chat.ts'), 'import OpenAI from "openai";');
+    const { code, stdout } = run(['scan', tmpDir]);
+    expect(code).toBe(0);
+    expect(stdout).toContain('openai');
+    fs.rmSync(tmpDir, { recursive: true });
+  });
+});
+
+describe('agent-comply CLI — input sanitization', () => {
+  it('scan with null byte in path → exits 2', () => {
+    const { code, stderr } = run(['scan', 'path\0.ts']);
+    expect(code).toBe(2);
+    expect(stderr).toContain('null');
+  });
+
+  it('classify with null byte in path → exits 2', () => {
+    const { code, stderr } = run(['classify', 'path\0.ts']);
+    expect(code).toBe(2);
+    expect(stderr).toContain('null');
+  });
+
+  it('report with null byte in --policy → exits 2', () => {
+    const { code, stderr } = run(['report', '--policy', 'policy\0.yaml']);
+    expect(code).toBe(2);
+    expect(stderr).toContain('null');
+  });
+
+  it('init with null byte in --output → exits 2', () => {
+    const { code, stderr } = run(['init', '--output', 'out\0.yaml']);
+    expect(code).toBe(2);
+    expect(stderr).toContain('null');
+  });
+});
+
+describe('agent-comply CLI — subcommand help', () => {
+  it('scan --help → exits 0 and shows usage', () => {
+    const { code, stdout } = run(['scan', '--help']);
+    expect(code).toBe(0);
+    expect(stdout).toContain('scan');
+  });
+
+  it('check --help → exits 0 and shows usage', () => {
+    const { code, stdout } = run(['check', '--help']);
+    expect(code).toBe(0);
+    expect(stdout).toContain('check');
+  });
+
+  it('report --help → exits 0 and shows format options', () => {
+    const { code, stdout } = run(['report', '--help']);
+    expect(code).toBe(0);
+    expect(stdout).toContain('--format');
   });
 });

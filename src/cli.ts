@@ -24,6 +24,10 @@ program
   .description('Generate a comply.yaml scaffold (auto-detects AI providers in current directory)')
   .option('--output <path>', 'Output path (default: ./comply.yaml)')
   .action((opts: { output?: string }) => {
+    if (opts.output && opts.output.includes('\0')) {
+      process.stderr.write('\nError: Invalid output path — null bytes are not allowed\n');
+      process.exit(2);
+    }
     runInit(opts.output);
   });
 
@@ -31,6 +35,10 @@ program
   .command('scan <path>')
   .description('Detect AI provider usage in a codebase (raw scan, no classification)')
   .action((targetPath: string) => {
+    if (targetPath.includes('\0')) {
+      process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
+      process.exit(2);
+    }
     runScan(targetPath);
   });
 
@@ -38,6 +46,10 @@ program
   .command('classify <path>')
   .description('Scan a codebase for AI model usage and classify risk tier (EU AI Act Annex III)')
   .action((targetPath: string) => {
+    if (targetPath.includes('\0')) {
+      process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
+      process.exit(2);
+    }
     runClassify(targetPath);
   });
 
@@ -46,6 +58,14 @@ program
   .description('Validate a project against a YAML compliance policy')
   .option('--config <path>', 'Path to comply.yaml (default: ./comply.yaml)')
   .action((policyPath: string, opts: { config?: string }) => {
+    if (policyPath.includes('\0')) {
+      process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
+      process.exit(2);
+    }
+    if (opts.config && opts.config.includes('\0')) {
+      process.stderr.write('\nError: Invalid --config path — null bytes are not allowed\n');
+      process.exit(2);
+    }
     runCheck(policyPath, opts.config);
   });
 
@@ -58,6 +78,12 @@ program
   .option('--format <format>', 'Output format: sarif, junit (for CI integration)')
   .option('--output <file>', 'Write format output to file instead of stdout')
   .action((opts: { config?: string; policy?: string; standard?: string; format?: string; output?: string }) => {
+    for (const [flag, val] of [['--config', opts.config], ['--policy', opts.policy], ['--output', opts.output]] as [string, string | undefined][]) {
+      if (val && val.includes('\0')) {
+        process.stderr.write(`\nError: Invalid ${flag} path — null bytes are not allowed\n`);
+        process.exit(2);
+      }
+    }
     runReport(opts.config, opts.policy, opts.standard, opts.format, opts.output);
   });
 

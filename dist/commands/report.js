@@ -5,6 +5,10 @@ import { checkCompliance } from '../checker/index.js';
 import { buildReport, formatReport, formatSarif, formatJunit } from '../reporter/index.js';
 import { guard } from '@bilkobibitkov/preflight-license';
 export function runReport(configPath, policyPath, standard, format, output) {
+    if (format && format !== 'sarif' && format !== 'junit') {
+        console.error(`Error: --format must be "sarif" or "junit", got "${format}"`);
+        process.exit(2);
+    }
     // Gate paid formats immediately — before any expensive work
     if (format === 'sarif' || format === 'junit') {
         guard('team', { feature: `--format ${format}` });
