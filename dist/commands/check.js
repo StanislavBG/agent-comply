@@ -7,6 +7,8 @@ export function runCheck(policyPath, configPath) {
     const resolvedConfig = configPath ? resolve(configPath) : resolve(process.cwd(), 'comply.yaml');
     if (!existsSync(resolvedPolicy)) {
         console.error(`Policy file not found: ${resolvedPolicy}`);
+        console.error('Specify a policy YAML file. Example:');
+        console.error('  agent-comply check ./policies/eu-ai-act.yaml');
         process.exit(2);
     }
     if (!existsSync(resolvedConfig)) {
