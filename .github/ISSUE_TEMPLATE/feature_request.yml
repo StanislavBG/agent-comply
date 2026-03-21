@@ -1,0 +1,57 @@
+name: Feature Request
+description: Suggest a new compliance check, regulation support, or output format
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        agent-comply focuses on actionable compliance documentation. Good feature requests are rooted in real regulatory requirements or team workflow needs.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      placeholder: "When preparing EU AI Act documentation for our High Risk AI system, I can't currently generate..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like to see?
+      placeholder: |
+        A `--regulation=iso42001` flag on `agent-comply scan` that checks against ISO 42001 requirements:
+        ```
+        npx agent-comply scan --regulation=iso42001
+        ```
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area?
+      options:
+        - New regulation support (ISO 42001, NIST AI RMF, etc.)
+        - EU AI Act coverage improvement
+        - Risk classification accuracy
+        - Output / report format
+        - CI integration
+        - Configuration options
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: regulatory-context
+    attributes:
+      label: Regulatory context (optional)
+      description: Link to specific articles, requirements, or regulatory guidance that motivates this request.
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Would you be willing to contribute this?
+      options:
+        - label: Yes, I'd like to open a PR for this

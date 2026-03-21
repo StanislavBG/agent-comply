@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/StanislavBG/agent-comply/discussions/new?category=q-a
+    about: Not sure if it's a bug? Ask in Discussions first.
+  - name: Show & Tell
+    url: https://github.com/StanislavBG/agent-comply/discussions/new?category=show-and-tell
+    about: Share your compliance scan setup or EU AI Act workflows.
+  - name: Documentation
+    url: https://github.com/StanislavBG/agent-comply/blob/main/README.md
+    about: README with full CLI reference and examples.
+  - name: Preflight Suite
+    url: https://github.com/StanislavBG/preflight
+    about: agent-comply is part of the Preflight Suite — stepproof, agent-gate, and more.

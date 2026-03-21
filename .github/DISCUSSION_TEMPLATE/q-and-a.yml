@@ -1,0 +1,34 @@
+title: "[Question] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Stuck on something? Ask here. For bugs (something that clearly should work but doesn't), use a [Bug Report issue](https://github.com/StanislavBG/agent-comply/issues/new?template=bug_report.yml) instead.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What do you need help with?
+      description: Be specific. Include the command you ran and what you expected vs what happened.
+      placeholder: "When I run `npx agent-comply classify` on our model, it assigns Limited Risk but I expected High Risk because..."
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      placeholder: "e.g. 20.11.0 — run `node --version`"
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "e.g. macOS 14, Ubuntu 22.04"
+
+  - type: input
+    id: version
+    attributes:
+      label: agent-comply version
+      placeholder: "run `npx agent-comply --version`"

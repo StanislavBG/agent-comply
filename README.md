@@ -13,8 +13,7 @@ You're shipping an AI agent. Someone on legal asks "are we compliant with the EU
 agent-comply turns that into a 90-second CLI run.
 
 ```bash
-# Install from GitHub (npm package coming soon)
-npm install -g github:StanislavBG/agent-comply
+npm install -g agent-comply
 ```
 
 ---
@@ -167,53 +166,7 @@ agent-comply report --config ./compliance/comply.yaml --policy policy.yaml
 
 ---
 
-## CI integration
-
-```yaml
-# .github/workflows/compliance.yml
-name: EU AI Act Compliance
-
-on: [push, pull_request]
-
-jobs:
-  comply:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: npm install -g github:StanislavBG/agent-comply
-      - run: agent-comply check policy.yaml
-```
-
-Exit code 1 on policy violations. PR blocked.
-
----
-
-## Workflow: dev to CI
-
-```bash
-# During development — fill out your comply.yaml
-agent-comply init
-agent-comply classify .   # auto-detect models
-
-# Commit comply.yaml to your repo
-git add comply.yaml policy.yaml
-git commit -m "Add compliance config"
-
-# In CI — enforce policy
-agent-comply check policy.yaml
-```
-
----
-
-## Examples
-
-See [`/examples`](./examples):
-- [`comply.yaml`](./examples/comply.yaml) — complete model inventory with risk tiers
-- [`policy.yaml`](./examples/policy.yaml) — EU AI Act baseline policy rules
-
----
-
-## Structured reports (v0.2.0)
+## Structured reports
 
 agent-comply outputs machine-readable SARIF 2.1.0 and JUnit XML for CI pipeline integration.
 
@@ -247,30 +200,57 @@ EU AI Act compliance violations appear as code scanning alerts in your GitHub Se
 
 ---
 
-## Part of the Preflight suite
+## CI integration
 
-agent-comply is one tool in a suite of AI agent pre-deploy checks:
+```yaml
+# .github/workflows/compliance.yml
+name: EU AI Act Compliance
 
-| Tool | Purpose | Install |
-|------|---------|---------|
-| **stepproof** | Behavioral regression testing | `npm install -g github:StanislavBG/stepproof` |
-| **agent-comply** | EU AI Act compliance scanning | `npm install -g github:StanislavBG/agent-comply` |
-| **agent-gate** | Unified pre-deploy CI gate | `npm install -g github:StanislavBG/agent-gate` |
-| **agent-shift** | Config versioning + environment promotion | `npm install -g github:StanislavBG/agent-shift` |
-| **agent-trace** | Local observability — OTel traces in SQLite | `npm install -g github:StanislavBG/agent-trace` |
+on: [push, pull_request]
 
-Install the full suite:
-```bash
-npm install -g github:StanislavBG/agent-gate github:StanislavBG/stepproof github:StanislavBG/agent-comply github:StanislavBG/agent-shift github:StanislavBG/agent-trace
+jobs:
+  comply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g agent-comply
+      - run: agent-comply check policy.yaml
 ```
+
+Exit code 1 on policy violations. PR blocked.
+
+---
+
+## Workflow: dev to CI
+
+```bash
+# During development — fill out your comply.yaml
+agent-comply init
+agent-comply classify .   # auto-detect models
+
+# Commit comply.yaml to your repo
+git add comply.yaml policy.yaml
+git commit -m "Add compliance config"
+
+# In CI — enforce policy
+agent-comply check policy.yaml
+```
+
+---
+
+## Examples
+
+See [`/examples`](./examples):
+- [`comply.yaml`](./examples/comply.yaml) — complete model inventory with risk tiers
+- [`policy.yaml`](./examples/policy.yaml) — EU AI Act baseline policy rules
 
 ---
 
 ## Roadmap
 
-- **v0.1** (now): Scan, classify, check, report — YAML-driven, offline, exit code 1 on violations
-- **v0.2**: GDPR Article 13/14 transparency notice generation, annex III lookup table
-- **Cloud dashboard** (month 3–6): Compliance history, trend charts, PDF export for auditors
+- **v0.2.0** (current): Scan, classify, check, report — YAML-driven, offline, exit code 1 on violations. SARIF 2.1.0 and JUnit XML output.
+- **v0.3.0** (next): GDPR Article 13/14 transparency notice generation, Annex III lookup table, expanded rule library.
+- **Cloud dashboard** (month 3–6): Compliance history, trend charts, PDF export for auditors.
 
 ---
 
@@ -290,13 +270,13 @@ agent-comply is one tool in a suite of AI agent pre-deploy checks:
 
 | Tool | Purpose | Install |
 |------|---------|---------|
-| **stepproof** | Behavioral regression testing | `npm install -g github:StanislavBG/stepproof` |
-| **agent-comply** | EU AI Act compliance scanning | `npm install -g github:StanislavBG/agent-comply` |
-| **agent-gate** | Unified pre-deploy CI gate | `npm install -g github:StanislavBG/agent-gate` |
-| **agent-shift** | Config versioning + environment promotion | `npm install -g github:StanislavBG/agent-shift` |
-| **agent-trace** | Local observability — OTel traces in SQLite | `npm install -g github:StanislavBG/agent-trace` |
+| **stepproof** | Behavioral regression testing | `npm install -g stepproof` |
+| **agent-comply** | EU AI Act compliance scanning | `npm install -g agent-comply` |
+| **agent-gate** | Unified pre-deploy CI gate | `npm install -g agent-gate` |
+| **agent-shift** | Config versioning + environment promotion | `npm install -g agent-shift` |
+| **agent-trace** | Local observability — OTel traces in SQLite | `npm install -g agent-trace` |
 
 Install the full suite:
 ```bash
-npm install -g github:StanislavBG/agent-gate github:StanislavBG/stepproof github:StanislavBG/agent-comply github:StanislavBG/agent-shift github:StanislavBG/agent-trace
+npm install -g agent-gate stepproof agent-comply agent-shift agent-trace
 ```

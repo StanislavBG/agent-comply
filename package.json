@@ -1,6 +1,6 @@
 {
   "name": "agent-comply",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "AI compliance CLI for EU AI Act documentation and verification",
   "main": "dist/cli.js",
   "bin": {
@@ -42,7 +42,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@preflight/license": "^1.0.0",
+    "@bilkobibitkov/preflight-license": "^1.0.0",
     "chalk": "^5.6.2",
     "commander": "^12.1.0",
     "glob": "^11.1.0",

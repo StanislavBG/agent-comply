@@ -1,0 +1,86 @@
+name: Bug Report
+description: Something isn't working right with agent-comply
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. agent-comply produces compliance documentation used in regulatory contexts — accuracy matters. Please provide as much detail as possible.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: "When I run `npx agent-comply scan`, I see..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `npx agent-comply init`
+        2. Run `npx agent-comply scan`
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: dropdown
+    id: command
+    attributes:
+      label: Which command?
+      options:
+        - agent-comply init
+        - agent-comply scan
+        - agent-comply classify
+        - agent-comply check
+        - agent-comply report
+        - Other / not command-specific
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Your agent-comply config (if relevant)
+      description: Paste your config here — redact any sensitive details.
+      render: yaml
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      placeholder: "e.g. 20.11.0 — run `node --version`"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "e.g. macOS 14, Ubuntu 22.04"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: agent-comply version
+      placeholder: "run `npx agent-comply --version`"
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Full error output
+      render: shell

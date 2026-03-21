@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { parseComplyConfig, parsePolicyConfig } from '../parser/index.js';
 import { checkCompliance } from '../checker/index.js';
 import { buildReport, formatReport, formatSarif, formatJunit } from '../reporter/index.js';
-import { guard } from '@preflight/license';
+import { guard } from '@bilkobibitkov/preflight-license';
 export function runReport(configPath, policyPath, standard, format, output) {
     // Gate paid formats immediately — before any expensive work
     if (format === 'sarif' || format === 'junit') {

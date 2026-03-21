@@ -1,0 +1,34 @@
+title: "[Show] "
+labels: ["show-and-tell"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Integrated agent-comply into your CI pipeline? Enforcing EU AI Act compliance on agent deployments? Show it off.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What did you build?
+      placeholder: "We added agent-comply to our GitHub Actions workflow — every AI agent must pass compliance checks before merge..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: how
+    attributes:
+      label: How does it work?
+      description: Share config, workflow YAML, or CLI commands.
+    validations:
+      required: true
+
+  - type: input
+    id: link
+    attributes:
+      label: Link (optional)
+      placeholder: "https://github.com/yourname/your-project"
+
+  - type: textarea
+    id: lessons
+    attributes:
+      label: Lessons learned
