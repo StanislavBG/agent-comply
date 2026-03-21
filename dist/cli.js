@@ -43,8 +43,9 @@ program
     .option('--policy <path>', 'Path to policy.yaml (optional, adds violation checks)')
     .option('--standard <name>', 'Compliance standard to reference (e.g. eu-ai-act)', 'eu-ai-act')
     .option('--format <format>', 'Output format: sarif, junit (for CI integration)')
+    .option('--output <file>', 'Write format output to file instead of stdout')
     .action((opts) => {
-    runReport(opts.config, opts.policy, opts.standard, opts.format);
+    runReport(opts.config, opts.policy, opts.standard, opts.format, opts.output);
 });
 program.parse();
 //# sourceMappingURL=cli.js.map
