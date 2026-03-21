@@ -6,6 +6,11 @@ import { buildReport, formatReport, formatSarif, formatJunit } from '../reporter
 import { guard } from '@bilkobibitkov/preflight-license';
 
 export function runReport(configPath?: string, policyPath?: string, standard?: string, format?: string, output?: string): void {
+  if (format && format !== 'sarif' && format !== 'junit') {
+    console.error(`Error: --format must be "sarif" or "junit", got "${format}"`);
+    process.exit(2);
+  }
+
   // Gate paid formats immediately — before any expensive work
   if (format === 'sarif' || format === 'junit') {
     guard('team', { feature: `--format ${format}` });
