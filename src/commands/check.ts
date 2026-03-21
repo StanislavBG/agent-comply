@@ -9,7 +9,7 @@ export function runCheck(policyPath: string, configPath?: string): void {
 
   if (!existsSync(resolvedPolicy)) {
     console.error(`Policy file not found: ${resolvedPolicy}`);
-    process.exit(1);
+    process.exit(2);
   }
   if (!existsSync(resolvedConfig)) {
     console.error(`Comply config not found: ${resolvedConfig}`);
@@ -19,7 +19,7 @@ export function runCheck(policyPath: string, configPath?: string): void {
     if (!configPath) {
       console.error('Or specify a different path: --config <path>');
     }
-    process.exit(1);
+    process.exit(2);
   }
 
   let config, policy;
@@ -28,14 +28,14 @@ export function runCheck(policyPath: string, configPath?: string): void {
     config = parseComplyConfig(resolvedConfig);
   } catch (err) {
     console.error(`Failed to parse comply config: ${(err as Error).message}`);
-    process.exit(1);
+    process.exit(2);
   }
 
   try {
     policy = parsePolicyConfig(resolvedPolicy);
   } catch (err) {
     console.error(`Failed to parse policy: ${(err as Error).message}`);
-    process.exit(1);
+    process.exit(2);
   }
 
   console.log(`\nChecking: ${resolvedConfig}`);

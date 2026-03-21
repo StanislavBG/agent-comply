@@ -11,13 +11,13 @@ export function runReport(configPath, policyPath, standard, format, output) {
     }
     if (standard && standard !== 'eu-ai-act') {
         console.error(`Unknown standard: ${standard}. Supported: eu-ai-act`);
-        process.exit(1);
+        process.exit(2);
     }
     const resolvedConfig = configPath ? resolve(configPath) : resolve(process.cwd(), 'comply.yaml');
     if (!existsSync(resolvedConfig)) {
         console.error(`Comply config not found: ${resolvedConfig}`);
         console.error('Run `agent-comply init` to create one, or specify --config <path>');
-        process.exit(1);
+        process.exit(2);
     }
     let config;
     try {
@@ -25,14 +25,14 @@ export function runReport(configPath, policyPath, standard, format, output) {
     }
     catch (err) {
         console.error(`Failed to parse comply config: ${err.message}`);
-        process.exit(1);
+        process.exit(2);
     }
     let violations = [];
     if (policyPath) {
         const resolvedPolicy = resolve(policyPath);
         if (!existsSync(resolvedPolicy)) {
             console.error(`Policy file not found: ${resolvedPolicy}`);
-            process.exit(1);
+            process.exit(2);
         }
         try {
             const policy = parsePolicyConfig(resolvedPolicy);
@@ -40,7 +40,7 @@ export function runReport(configPath, policyPath, standard, format, output) {
         }
         catch (err) {
             console.error(`Failed to parse policy: ${err.message}`);
-            process.exit(1);
+            process.exit(2);
         }
     }
     const report = buildReport(config, violations);

@@ -7,7 +7,7 @@ export function runCheck(policyPath, configPath) {
     const resolvedConfig = configPath ? resolve(configPath) : resolve(process.cwd(), 'comply.yaml');
     if (!existsSync(resolvedPolicy)) {
         console.error(`Policy file not found: ${resolvedPolicy}`);
-        process.exit(1);
+        process.exit(2);
     }
     if (!existsSync(resolvedConfig)) {
         console.error(`Comply config not found: ${resolvedConfig}`);
@@ -17,7 +17,7 @@ export function runCheck(policyPath, configPath) {
         if (!configPath) {
             console.error('Or specify a different path: --config <path>');
         }
-        process.exit(1);
+        process.exit(2);
     }
     let config, policy;
     try {
@@ -25,14 +25,14 @@ export function runCheck(policyPath, configPath) {
     }
     catch (err) {
         console.error(`Failed to parse comply config: ${err.message}`);
-        process.exit(1);
+        process.exit(2);
     }
     try {
         policy = parsePolicyConfig(resolvedPolicy);
     }
     catch (err) {
         console.error(`Failed to parse policy: ${err.message}`);
-        process.exit(1);
+        process.exit(2);
     }
     console.log(`\nChecking: ${resolvedConfig}`);
     console.log(`Policy:   ${policy.name} v${policy.version ?? 'unknown'}`);

@@ -47,7 +47,7 @@ export function runInit(outputPath) {
     const providers = [...new Set(detected.map(r => r.provider))];
     const projectName = cwd.split('/').pop() ?? 'my-ai-project';
     writeFileSync(target, COMPLY_TEMPLATE(projectName, providers));
-    console.log(`\nCreated: ${target}`);
+    console.log(`\n✔ Created: ${target}`);
     if (providers.length > 0) {
         console.log(`\nAuto-detected providers: ${providers.join(', ')}`);
         console.log('Model stubs have been added — fill in use_case and risk_tier for each.');
@@ -55,7 +55,14 @@ export function runInit(outputPath) {
     else {
         console.log('\nNo AI providers detected in current directory — template scaffold created.');
     }
-    console.log('\nNext: edit comply.yaml, then run `agent-comply report` to generate a compliance report.');
+    console.log('\nNext:');
+    console.log('  1. Edit comply.yaml — fill in use_case and risk_tier for each model');
+    console.log('  2. agent-comply classify .   — auto-detect AI usage from your codebase');
+    console.log('  3. agent-comply check <policy>  — validate against EU AI Act policy');
     console.log('');
+    console.log('EU AI Act policies: https://github.com/StanislavBG/agent-comply/tree/main/policies');
+    console.log('');
+    console.log('Running deploy gates? agent-gate integrates agent-comply automatically:');
+    console.log('  npx agent-gate init');
 }
 //# sourceMappingURL=init.js.map
