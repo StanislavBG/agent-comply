@@ -32,7 +32,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/StanislavBG/agent-comply"
+    "url": "git+https://github.com/StanislavBG/agent-comply.git"
   },
   "publishConfig": {
     "access": "public"
@@ -41,7 +41,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@preflight/license": "file:../preflight-license",
+    "@preflight/license": "^1.0.0",
     "chalk": "^5.6.2",
     "commander": "^12.1.0",
     "glob": "^11.1.0",
