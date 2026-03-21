@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { formatSarif, formatJunit, buildReport } from '../../src/reporter/index.js';
+import { writeFileSync, readFileSync, unlinkSync, existsSync } from 'fs';
+import { resolve } from 'path';
+import os from 'os';
 import type { ComplianceReport, CheckViolation } from '../../src/types/index.js';
 
 const baseReport: ComplianceReport = {
@@ -162,5 +165,32 @@ describe('formatJunit', () => {
     expect(output).toContain('&amp;');
     expect(output).toContain('&gt;');
     expect(output).toContain('&quot;');
+  });
+});
+
+// ── --output <file> behavior ───────────────────────────────────────────────
+
+describe('--output file writing', () => {
+  const tmpFile = resolve(os.tmpdir(), `agent-comply-test-${Date.now()}.sarif`);
+
+  afterEach(() => {
+    if (existsSync(tmpFile)) unlinkSync(tmpFile);
+  });
+
+  it('formatSarif output can be written to a file and read back as valid SARIF', () => {
+    const sarif = formatSarif(baseReport);
+    writeFileSync(tmpFile, sarif, 'utf-8');
+    const contents = readFileSync(tmpFile, 'utf-8');
+    const parsed = JSON.parse(contents);
+    expect(parsed.version).toBe('2.1.0');
+    expect(parsed.runs[0].tool.driver.name).toBe('agent-comply');
+  });
+
+  it('formatJunit output can be written to a file and read back as valid XML', () => {
+    const xml = formatJunit(baseReport);
+    writeFileSync(tmpFile, xml, 'utf-8');
+    const contents = readFileSync(tmpFile, 'utf-8');
+    expect(contents).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+    expect(contents).toContain('<testsuites');
   });
 });

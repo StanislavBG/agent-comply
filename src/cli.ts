@@ -50,8 +50,9 @@ program
   .option('--policy <path>', 'Path to policy.yaml (optional, adds violation checks)')
   .option('--standard <name>', 'Compliance standard to reference (e.g. eu-ai-act)', 'eu-ai-act')
   .option('--format <format>', 'Output format: sarif, junit (for CI integration)')
-  .action((opts: { config?: string; policy?: string; standard?: string; format?: string }) => {
-    runReport(opts.config, opts.policy, opts.standard, opts.format);
+  .option('--output <file>', 'Write format output to file instead of stdout')
+  .action((opts: { config?: string; policy?: string; standard?: string; format?: string; output?: string }) => {
+    runReport(opts.config, opts.policy, opts.standard, opts.format, opts.output);
   });
 
 program.parse();

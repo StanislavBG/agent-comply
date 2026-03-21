@@ -1,11 +1,11 @@
-import { existsSync } from 'fs';
+import { existsSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { parseComplyConfig, parsePolicyConfig } from '../parser/index.js';
 import { checkCompliance } from '../checker/index.js';
 import { buildReport, formatReport, formatSarif, formatJunit } from '../reporter/index.js';
 import { guard } from '@preflight/license';
 
-export function runReport(configPath?: string, policyPath?: string, standard?: string, format?: string): void {
+export function runReport(configPath?: string, policyPath?: string, standard?: string, format?: string, output?: string): void {
   // Gate paid formats immediately — before any expensive work
   if (format === 'sarif' || format === 'junit') {
     guard('team', { feature: `--format ${format}` });
@@ -49,10 +49,13 @@ export function runReport(configPath?: string, policyPath?: string, standard?: s
 
   const report = buildReport(config, violations);
 
-  if (format === 'sarif') {
-    console.log(formatSarif(report));
-  } else if (format === 'junit') {
-    console.log(formatJunit(report));
+  if (format === 'sarif' || format === 'junit') {
+    const formatted = format === 'sarif' ? formatSarif(report) : formatJunit(report);
+    if (output) {
+      writeFileSync(resolve(output), formatted, 'utf-8');
+    } else {
+      process.stdout.write(formatted + '\n');
+    }
   } else {
     console.log(formatReport(report));
   }
