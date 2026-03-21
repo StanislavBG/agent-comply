@@ -238,6 +238,42 @@ agent-comply check policy.yaml
 
 ---
 
+## Troubleshooting
+
+### `comply.yaml not found`
+Run `agent-comply init` to scaffold one:
+```bash
+agent-comply init
+```
+Then edit `comply.yaml` to describe your AI models.
+
+### `Error: could not read <path>` when scanning
+The path must exist and be readable. Check that you're pointing at a directory with AI provider imports:
+```bash
+agent-comply classify ./src   # point at src, not the repo root
+```
+
+### Scanner finds no AI providers
+The scanner looks for known import patterns (`openai`, `anthropic`, `langchain`, etc.). If your code uses a wrapper library, add it to your `comply.yaml` manually.
+
+### Policy check finds no violations but I expect some
+Make sure your `comply.yaml` is up-to-date (run `agent-comply classify .` to refresh), and that your policy file's `rules` conditions match the fields in your `comply.yaml`.
+
+### SARIF report is empty
+You must pass `--policy` to include violation checks in SARIF output:
+```bash
+agent-comply report --policy policy.yaml --format sarif > compliance.sarif
+```
+
+### Pro features blocked
+SARIF/JUnit output requires a Team license. Set your key:
+```bash
+export PREFLIGHT_LICENSE_KEY=preflight_...
+agent-comply report --format sarif
+```
+
+---
+
 ## Examples
 
 See [`/examples`](./examples):

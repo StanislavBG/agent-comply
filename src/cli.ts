@@ -34,6 +34,10 @@ program
 program
   .command('scan <path>')
   .description('Detect AI provider usage in a codebase (raw scan, no classification)')
+  .addHelpText('after', `
+Examples:
+  agent-comply scan .                scan current directory
+  agent-comply scan ./src            scan src/ only`)
   .action((targetPath: string) => {
     if (targetPath.includes('\0')) {
       process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
@@ -57,6 +61,10 @@ program
   .command('check <policy>')
   .description('Validate a project against a YAML compliance policy')
   .option('--config <path>', 'Path to comply.yaml (default: ./comply.yaml)')
+  .addHelpText('after', `
+Examples:
+  agent-comply check policy.yaml                              validate ./comply.yaml against policy
+  agent-comply check policy.yaml --config ./compliance/comply.yaml  use custom comply.yaml path`)
   .action((policyPath: string, opts: { config?: string }) => {
     if (policyPath.includes('\0')) {
       process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
