@@ -11,7 +11,13 @@ const program = new Command();
 program
   .name('agent-comply')
   .description('EU AI Act compliance CLI — classify, check, and report AI system compliance')
-  .version('0.2.0');
+  .version('0.2.0')
+  .addHelpText('after', `
+Examples:
+  agent-comply init                                  scaffold comply.yaml
+  agent-comply classify .                            detect AI usage + classify risk tier
+  agent-comply check ./policies/eu-ai-act.yaml       validate against EU AI Act policy
+  agent-comply report --policy ./policies/eu-ai-act.yaml  full compliance report`);
 
 program
   .command('init')
