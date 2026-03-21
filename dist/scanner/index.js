@@ -105,8 +105,12 @@ export function scanDirectory(rootDir) {
             files = globSync(pattern, { cwd: absRoot, ignore, absolute: true });
         }
     }
-    catch {
-        return results;
+    catch (e) {
+        const err = e;
+        if (err.code === 'ENOENT') {
+            throw new Error(`Path not found: ${absRoot}`);
+        }
+        throw new Error(`Cannot access path: ${absRoot} — ${err.message}`);
     }
     for (const file of files) {
         let content;

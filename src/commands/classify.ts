@@ -64,7 +64,14 @@ const TIER_LABEL: Record<RiskTier, string> = {
 export function runClassify(targetPath: string): void {
   console.log(`\nScanning: ${targetPath}\n`);
 
-  const results: ScanResult[] = scanDirectory(targetPath);
+  let results: ScanResult[] = [];
+  try {
+    results = scanDirectory(targetPath);
+  } catch (e) {
+    console.error(`\nError: ${(e as Error).message}`);
+    console.error(`Run 'agent-comply classify --help' for usage.\n`);
+    process.exit(2);
+  }
 
   if (results.length === 0) {
     console.log('No AI provider usage detected.\n');

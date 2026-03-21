@@ -53,5 +53,13 @@ program
     .action((opts) => {
     runReport(opts.config, opts.policy, opts.standard, opts.format, opts.output);
 });
+program.action(() => {
+    const extra = process.argv.slice(2).filter(a => !a.startsWith('-'));
+    if (extra.length > 0) {
+        process.stderr.write(`\nError: Unknown command '${extra[0]}'\nRun 'agent-comply --help' for usage.\n\n`);
+        process.exit(2);
+    }
+    program.help(); // exits 0
+});
 program.parse();
 //# sourceMappingURL=cli.js.map

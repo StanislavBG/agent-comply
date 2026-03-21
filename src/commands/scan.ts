@@ -4,7 +4,14 @@ import type { ScanResult } from '../types/index.js';
 export function runScan(targetPath: string): void {
   console.log(`\nScanning: ${targetPath}\n`);
 
-  const results: ScanResult[] = scanDirectory(targetPath);
+  let results: ScanResult[] = [];
+  try {
+    results = scanDirectory(targetPath);
+  } catch (e) {
+    console.error(`\nError: ${(e as Error).message}`);
+    console.error(`Run 'agent-comply scan --help' for usage.\n`);
+    process.exit(2);
+  }
 
   if (results.length === 0) {
     console.log('No AI provider usage detected.\n');

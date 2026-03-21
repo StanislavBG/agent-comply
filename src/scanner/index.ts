@@ -113,8 +113,12 @@ export function scanDirectory(rootDir: string): ScanResult[] {
       const ignore = EXCLUDE_DIRS.map(d => `**/${d}/**`);
       files = globSync(pattern, { cwd: absRoot, ignore, absolute: true });
     }
-  } catch {
-    return results;
+  } catch (e) {
+    const err = e as NodeJS.ErrnoException;
+    if (err.code === 'ENOENT') {
+      throw new Error(`Path not found: ${absRoot}`);
+    }
+    throw new Error(`Cannot access path: ${absRoot} — ${err.message}`);
   }
 
   for (const file of files) {
