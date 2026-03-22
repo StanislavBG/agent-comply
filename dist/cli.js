@@ -10,7 +10,7 @@ const program = new Command();
 program
     .name('agent-comply')
     .description('EU AI Act compliance CLI — classify, check, and report AI system compliance')
-    .version('0.2.5')
+    .version('0.2.6')
     .addHelpText('after', `
 Examples:
   agent-comply init                                  scaffold comply.yaml
@@ -22,7 +22,7 @@ program
     .description('Generate a comply.yaml scaffold (auto-detects AI providers in current directory)')
     .option('--output <path>', 'Output path (default: ./comply.yaml)')
     .action((opts) => {
-    sendTelemetry({ command: 'init', version: '0.2.5' });
+    sendTelemetry({ command: 'init', version: '0.2.6' });
     if (opts.output && opts.output.includes('\0')) {
         process.stderr.write('\nError: Invalid output path — null bytes are not allowed\n');
         process.exit(2);
@@ -37,7 +37,7 @@ Examples:
   agent-comply scan .                scan current directory
   agent-comply scan ./src            scan src/ only`)
     .action((targetPath) => {
-    sendTelemetry({ command: 'scan', version: '0.2.5' });
+    sendTelemetry({ command: 'scan', version: '0.2.6' });
     if (targetPath.includes('\0')) {
         process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
         process.exit(2);
@@ -48,7 +48,7 @@ program
     .command('classify <path>')
     .description('Scan a codebase for AI model usage and classify risk tier (EU AI Act Annex III)')
     .action((targetPath) => {
-    sendTelemetry({ command: 'classify', version: '0.2.5' });
+    sendTelemetry({ command: 'classify', version: '0.2.6' });
     if (targetPath.includes('\0')) {
         process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
         process.exit(2);
@@ -64,7 +64,7 @@ Examples:
   agent-comply check policy.yaml                              validate ./comply.yaml against policy
   agent-comply check policy.yaml --config ./compliance/comply.yaml  use custom comply.yaml path`)
     .action((policyPath, opts) => {
-    sendTelemetry({ command: 'check', version: '0.2.5' });
+    sendTelemetry({ command: 'check', version: '0.2.6' });
     if (policyPath.includes('\0')) {
         process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
         process.exit(2);
@@ -84,7 +84,7 @@ program
     .option('--format <format>', 'Output format: sarif, junit (for CI integration)')
     .option('--output <file>', 'Write format output to file instead of stdout')
     .action((opts) => {
-    sendTelemetry({ command: 'report', version: '0.2.5' });
+    sendTelemetry({ command: 'report', version: '0.2.6' });
     for (const [flag, val] of [['--config', opts.config], ['--policy', opts.policy], ['--output', opts.output]]) {
         if (val && val.includes('\0')) {
             process.stderr.write(`\nError: Invalid ${flag} path — null bytes are not allowed\n`);
