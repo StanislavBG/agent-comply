@@ -13,6 +13,7 @@ import { validate } from '@bilkobibitkov/preflight-license';
 
 /* ── Usage-based monetization ───────────────────────────────────────── */
 
+const CLI_VERSION = '0.2.8';
 const FREE_MONTHLY_LIMIT = 10;
 const UPGRADE_URL = 'https://buy.stripe.com/28E00l73Ccu9ePH1S08k802';
 const CONFIG_DIR = path.join(os.homedir(), '.config', 'agent-comply');
@@ -68,8 +69,14 @@ function checkUsageLimit(): boolean {
   const usage = readUsage();
   if (usage.count >= FREE_MONTHLY_LIMIT) {
     process.stderr.write(
-      `\nYou've used ${FREE_MONTHLY_LIMIT}/${FREE_MONTHLY_LIMIT} free runs this month. ` +
-      `Upgrade to Preflight Team ($49/mo) for unlimited runs + SARIF/JUnit CI output → ${UPGRADE_URL}\n\n`
+      `\n─────────────────────────────────────────────────────────────\n` +
+      `  You've used all ${FREE_MONTHLY_LIMIT} free runs this month.\n\n` +
+      `  Preflight Team ($49/mo) unlocks:\n` +
+      `    · Unlimited runs          · Compliance dashboard\n` +
+      `    · PDF reports             · Slack alerts\n` +
+      `    · Full run history        · SARIF/JUnit CI output\n\n` +
+      `  Upgrade → ${UPGRADE_URL}\n` +
+      `─────────────────────────────────────────────────────────────\n\n`
     );
     return false;
   }
@@ -83,8 +90,11 @@ function trackUsageAfterRun(): void {
   writeUsage(usage);
   const remaining = FREE_MONTHLY_LIMIT - usage.count;
   process.stderr.write(
-    `\n${remaining}/${FREE_MONTHLY_LIMIT} free runs remaining this month. ` +
-    `Upgrade to Preflight Team ($49/mo) for unlimited runs + SARIF/JUnit CI output → ${UPGRADE_URL}\n`
+    `\n─────────────────────────────────────────────────────────────\n` +
+    `  ${remaining} of ${FREE_MONTHLY_LIMIT} free runs remaining this month.\n` +
+    `  Team unlocks: unlimited runs · PDF reports · Slack alerts · run history\n` +
+    `  Upgrade → ${UPGRADE_URL}\n` +
+    `─────────────────────────────────────────────────────────────\n`
   );
 }
 
@@ -93,7 +103,7 @@ const program = new Command();
 program
   .name('agent-comply')
   .description('EU AI Act compliance CLI — classify, check, and report AI system compliance')
-  .version('0.2.7')
+  .version('0.2.8')
   .addHelpText('after', `
 Examples:
   agent-comply init                                  scaffold comply.yaml
@@ -125,7 +135,7 @@ program
   .description('Generate a comply.yaml scaffold (auto-detects AI providers in current directory)')
   .option('--output <path>', 'Output path (default: ./comply.yaml)')
   .action((opts: { output?: string }) => {
-    sendTelemetry({ command: 'init', version: '0.2.7' });
+    sendTelemetry({ command: 'init', version: CLI_VERSION });
     if (opts.output && opts.output.includes('\0')) {
       process.stderr.write('\nError: Invalid output path — null bytes are not allowed\n');
       process.exit(2);
@@ -143,7 +153,7 @@ Examples:
   agent-comply scan .                scan current directory
   agent-comply scan ./src            scan src/ only`)
   .action((targetPath: string) => {
-    sendTelemetry({ command: 'scan', version: '0.2.7' });
+    sendTelemetry({ command: 'scan', version: CLI_VERSION });
     if (targetPath.includes('\0')) {
       process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
       process.exit(2);
@@ -157,7 +167,7 @@ program
   .command('classify <path>')
   .description('Scan a codebase for AI model usage and classify risk tier (EU AI Act Annex III)')
   .action((targetPath: string) => {
-    sendTelemetry({ command: 'classify', version: '0.2.7' });
+    sendTelemetry({ command: 'classify', version: CLI_VERSION });
     if (targetPath.includes('\0')) {
       process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
       process.exit(2);
@@ -176,7 +186,7 @@ Examples:
   agent-comply check policy.yaml                              validate ./comply.yaml against policy
   agent-comply check policy.yaml --config ./compliance/comply.yaml  use custom comply.yaml path`)
   .action((policyPath: string, opts: { config?: string }) => {
-    sendTelemetry({ command: 'check', version: '0.2.7' });
+    sendTelemetry({ command: 'check', version: CLI_VERSION });
     if (policyPath.includes('\0')) {
       process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
       process.exit(2);
@@ -199,7 +209,7 @@ program
   .option('--format <format>', 'Output format: sarif, junit (for CI integration)')
   .option('--output <file>', 'Write format output to file instead of stdout')
   .action((opts: { config?: string; policy?: string; standard?: string; format?: string; output?: string }) => {
-    sendTelemetry({ command: 'report', version: '0.2.7' });
+    sendTelemetry({ command: 'report', version: CLI_VERSION });
     for (const [flag, val] of [['--config', opts.config], ['--policy', opts.policy], ['--output', opts.output]] as [string, string | undefined][]) {
       if (val && val.includes('\0')) {
         process.stderr.write(`\nError: Invalid ${flag} path — null bytes are not allowed\n`);
