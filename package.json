@@ -1,6 +1,6 @@
 {
-  "name": "agent-comply",
-  "version": "0.2.2",
+  "name": "@bilkobibitkov/agent-comply",
+  "version": "0.2.3",
   "description": "AI compliance CLI for EU AI Act documentation and verification",
   "main": "dist/cli.js",
   "bin": {
