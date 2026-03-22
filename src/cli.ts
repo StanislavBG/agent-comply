@@ -1,18 +1,99 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as os from 'node:os';
 import { runClassify } from './commands/classify.js';
 import { runCheck } from './commands/check.js';
 import { runReport } from './commands/report.js';
 import { runScan } from './commands/scan.js';
 import { runInit } from './commands/init.js';
 import { sendTelemetry } from './telemetry.js';
+import { validate } from '@bilkobibitkov/preflight-license';
+
+/* ── Usage-based monetization ───────────────────────────────────────── */
+
+const FREE_MONTHLY_LIMIT = 10;
+const UPGRADE_URL = 'https://buy.stripe.com/28E00l73Ccu9ePH1S08k802';
+const CONFIG_DIR = path.join(os.homedir(), '.config', 'agent-comply');
+const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const USAGE_FILE = path.join(CONFIG_DIR, 'usage.json');
+
+interface UsageRecord {
+  month: string; // YYYY-MM
+  count: number;
+}
+
+function getComplyKey(): string | undefined {
+  const envKey = process.env.COMPLY_KEY;
+  if (envKey && envKey.trim()) return envKey.trim();
+  try {
+    if (fs.existsSync(CONFIG_FILE)) {
+      const raw = fs.readFileSync(CONFIG_FILE, 'utf8');
+      const parsed = JSON.parse(raw) as { key?: string };
+      if (parsed.key && parsed.key.trim()) return parsed.key.trim();
+    }
+  } catch { /* corrupted config — ignore */ }
+  return undefined;
+}
+
+function isProUser(): boolean {
+  const key = getComplyKey();
+  if (!key) return false;
+  const result = validate(key);
+  return result.valid && result.tier !== 'free';
+}
+
+function readUsage(): UsageRecord {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  try {
+    if (fs.existsSync(USAGE_FILE)) {
+      const raw = fs.readFileSync(USAGE_FILE, 'utf8');
+      const parsed = JSON.parse(raw) as UsageRecord;
+      if (parsed.month === currentMonth) return parsed;
+    }
+  } catch { /* corrupted — reset */ }
+  return { month: currentMonth, count: 0 };
+}
+
+function writeUsage(record: UsageRecord): void {
+  try {
+    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+    fs.writeFileSync(USAGE_FILE, JSON.stringify(record), 'utf8');
+  } catch { /* degrade gracefully */ }
+}
+
+function checkUsageLimit(): boolean {
+  if (isProUser()) return true;
+  const usage = readUsage();
+  if (usage.count >= FREE_MONTHLY_LIMIT) {
+    process.stderr.write(
+      `\nYou've used ${FREE_MONTHLY_LIMIT}/${FREE_MONTHLY_LIMIT} free runs this month. ` +
+      `Upgrade to Preflight Team ($49/mo) for unlimited runs + SARIF/JUnit CI output → ${UPGRADE_URL}\n\n`
+    );
+    return false;
+  }
+  return true;
+}
+
+function trackUsageAfterRun(): void {
+  if (isProUser()) return;
+  const usage = readUsage();
+  usage.count += 1;
+  writeUsage(usage);
+  const remaining = FREE_MONTHLY_LIMIT - usage.count;
+  process.stderr.write(
+    `\n${remaining}/${FREE_MONTHLY_LIMIT} free runs remaining this month. ` +
+    `Upgrade to Preflight Team ($49/mo) for unlimited runs + SARIF/JUnit CI output → ${UPGRADE_URL}\n`
+  );
+}
 
 const program = new Command();
 
 program
   .name('agent-comply')
   .description('EU AI Act compliance CLI — classify, check, and report AI system compliance')
-  .version('0.2.6')
+  .version('0.2.7')
   .addHelpText('after', `
 Examples:
   agent-comply init                                  scaffold comply.yaml
@@ -21,15 +102,36 @@ Examples:
   agent-comply report --policy ./policies/eu-ai-act.yaml  full compliance report`);
 
 program
+  .command('activate <key>')
+  .description('Store a license key for unlimited runs')
+  .action((key: string) => {
+    const result = validate(key);
+    if (!result.valid) {
+      process.stderr.write(`\nInvalid license key: ${result.reason}\n\n`);
+      process.exit(1);
+    }
+    try {
+      fs.mkdirSync(CONFIG_DIR, { recursive: true });
+      fs.writeFileSync(CONFIG_FILE, JSON.stringify({ key }), 'utf8');
+      console.log(`\nLicense activated (${result.tier} — ${result.org}). Unlimited runs enabled.\n`);
+    } catch (e) {
+      process.stderr.write(`\nFailed to save license: ${(e as Error).message}\n\n`);
+      process.exit(1);
+    }
+  });
+
+program
   .command('init')
   .description('Generate a comply.yaml scaffold (auto-detects AI providers in current directory)')
   .option('--output <path>', 'Output path (default: ./comply.yaml)')
   .action((opts: { output?: string }) => {
-    sendTelemetry({ command: 'init', version: '0.2.6' });
+    sendTelemetry({ command: 'init', version: '0.2.7' });
     if (opts.output && opts.output.includes('\0')) {
       process.stderr.write('\nError: Invalid output path — null bytes are not allowed\n');
       process.exit(2);
     }
+    if (!checkUsageLimit()) process.exit(1);
+    process.on('exit', trackUsageAfterRun);
     runInit(opts.output);
   });
 
@@ -41,11 +143,13 @@ Examples:
   agent-comply scan .                scan current directory
   agent-comply scan ./src            scan src/ only`)
   .action((targetPath: string) => {
-    sendTelemetry({ command: 'scan', version: '0.2.6' });
+    sendTelemetry({ command: 'scan', version: '0.2.7' });
     if (targetPath.includes('\0')) {
       process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
       process.exit(2);
     }
+    if (!checkUsageLimit()) process.exit(1);
+    process.on('exit', trackUsageAfterRun);
     runScan(targetPath);
   });
 
@@ -53,11 +157,13 @@ program
   .command('classify <path>')
   .description('Scan a codebase for AI model usage and classify risk tier (EU AI Act Annex III)')
   .action((targetPath: string) => {
-    sendTelemetry({ command: 'classify', version: '0.2.6' });
+    sendTelemetry({ command: 'classify', version: '0.2.7' });
     if (targetPath.includes('\0')) {
       process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
       process.exit(2);
     }
+    if (!checkUsageLimit()) process.exit(1);
+    process.on('exit', trackUsageAfterRun);
     runClassify(targetPath);
   });
 
@@ -70,7 +176,7 @@ Examples:
   agent-comply check policy.yaml                              validate ./comply.yaml against policy
   agent-comply check policy.yaml --config ./compliance/comply.yaml  use custom comply.yaml path`)
   .action((policyPath: string, opts: { config?: string }) => {
-    sendTelemetry({ command: 'check', version: '0.2.6' });
+    sendTelemetry({ command: 'check', version: '0.2.7' });
     if (policyPath.includes('\0')) {
       process.stderr.write('\nError: Invalid path — null bytes are not allowed\n');
       process.exit(2);
@@ -79,6 +185,8 @@ Examples:
       process.stderr.write('\nError: Invalid --config path — null bytes are not allowed\n');
       process.exit(2);
     }
+    if (!checkUsageLimit()) process.exit(1);
+    process.on('exit', trackUsageAfterRun);
     runCheck(policyPath, opts.config);
   });
 
@@ -91,13 +199,15 @@ program
   .option('--format <format>', 'Output format: sarif, junit (for CI integration)')
   .option('--output <file>', 'Write format output to file instead of stdout')
   .action((opts: { config?: string; policy?: string; standard?: string; format?: string; output?: string }) => {
-    sendTelemetry({ command: 'report', version: '0.2.6' });
+    sendTelemetry({ command: 'report', version: '0.2.7' });
     for (const [flag, val] of [['--config', opts.config], ['--policy', opts.policy], ['--output', opts.output]] as [string, string | undefined][]) {
       if (val && val.includes('\0')) {
         process.stderr.write(`\nError: Invalid ${flag} path — null bytes are not allowed\n`);
         process.exit(2);
       }
     }
+    if (!checkUsageLimit()) process.exit(1);
+    process.on('exit', trackUsageAfterRun);
     runReport(opts.config, opts.policy, opts.standard, opts.format, opts.output);
   });
 
