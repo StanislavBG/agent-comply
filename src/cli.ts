@@ -8,12 +8,12 @@ import { runCheck } from './commands/check.js';
 import { runReport } from './commands/report.js';
 import { runScan } from './commands/scan.js';
 import { runInit } from './commands/init.js';
-import { sendTelemetry } from './telemetry.js';
+import { sendTelemetry, sendConversionEvent } from './telemetry.js';
 import { validate } from '@bilkobibitkov/preflight-license';
 
 /* ── Usage-based monetization (Preflight Suite — shared) ────────────── */
 
-const CLI_VERSION = '0.2.11';
+const CLI_VERSION = '0.2.12';
 const TOOL_NAME = 'agent-comply' as const;
 const FREE_MONTHLY_LIMIT = 50;
 const UPGRADE_URL = 'https://buy.stripe.com/28E00l73Ccu9ePH1S08k802';
@@ -90,6 +90,7 @@ function checkUsageLimit(): boolean {
       `  Upgrade to Team for unlimited runs: ${UPGRADE_URL}\n` +
       `  Already have a key? agent-comply activate <key>\n\n`
     );
+    sendConversionEvent({ event: 'limit_reached', version: CLI_VERSION, runs_used: usage.total, runs_remaining: 0 });
     return false;
   }
   return true;
@@ -109,9 +110,11 @@ function trackUsageAfterRun(): void {
   if (remaining === 0) {
     msg = `\n  ${used}/${FREE_MONTHLY_LIMIT} free Preflight runs used — cap reached.\n` +
           `  Upgrade to Team for unlimited runs: ${UPGRADE_URL}\n\n`;
+    sendConversionEvent({ event: 'upgrade_prompt_shown', version: CLI_VERSION, runs_used: used, runs_remaining: remaining });
   } else if (remaining <= 5) {
     msg = `\n  ${used}/${FREE_MONTHLY_LIMIT} free Preflight runs used — ${remaining} left this month.\n` +
           `  Team tier removes the cap · $49/mo → ${UPGRADE_URL}\n\n`;
+    sendConversionEvent({ event: 'upgrade_prompt_shown', version: CLI_VERSION, runs_used: used, runs_remaining: remaining });
   } else {
     msg = `\n  Run ${used} of ${FREE_MONTHLY_LIMIT} free Preflight runs this month.\n\n`;
   }
@@ -123,7 +126,7 @@ const program = new Command();
 program
   .name('agent-comply')
   .description('EU AI Act compliance CLI — classify, check, and report AI system compliance')
-  .version('0.2.11')
+  .version('0.2.12')
   .addHelpText('after', `
 Examples:
   agent-comply init                                  scaffold comply.yaml
