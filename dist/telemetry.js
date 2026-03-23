@@ -86,10 +86,12 @@ export function sendTelemetry(payload) {
         package: 'agent-comply',
         event: 'run',
         command: payload.command,
-        success: true,
+        success: payload.exit_code === undefined ? true : payload.exit_code === 0,
         version: payload.version,
         platform: process.platform,
         nodeVersion: process.version,
+        exit_code: payload.exit_code,
+        duration_ms: payload.duration_ms,
     });
     const p = new Promise((resolve) => {
         const timeout = setTimeout(resolve, 3000);

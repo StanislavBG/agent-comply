@@ -11,72 +11,84 @@ import { runInit } from './commands/init.js';
 import { sendTelemetry } from './telemetry.js';
 import { validate } from '@bilkobibitkov/preflight-license';
 
-/* ── Usage-based monetization ───────────────────────────────────────── */
+/* ── Usage-based monetization (Preflight Suite — shared) ────────────── */
 
-const CLI_VERSION = '0.2.10';
-const FREE_MONTHLY_LIMIT = 10;
+const CLI_VERSION = '0.2.11';
+const TOOL_NAME = 'agent-comply' as const;
+const FREE_MONTHLY_LIMIT = 50;
 const UPGRADE_URL = 'https://buy.stripe.com/28E00l73Ccu9ePH1S08k802';
+
+// Shared suite directory
+const SUITE_DIR = path.join(os.homedir(), '.preflight-suite');
+const SUITE_USAGE_FILE = path.join(SUITE_DIR, 'usage.json');
+const SUITE_LICENSE_FILE = path.join(SUITE_DIR, 'license.json');
+
+// Legacy per-tool config dir (kept for backwards-compat reads)
 const CONFIG_DIR = path.join(os.homedir(), '.config', 'agent-comply');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
-const USAGE_FILE = path.join(CONFIG_DIR, 'usage.json');
 
-interface UsageRecord {
+interface SharedUsage {
   month: string; // YYYY-MM
-  count: number;
+  total: number;
+  tools: {
+    stepproof: number;
+    'agent-comply': number;
+    'agent-gate': number;
+  };
 }
 
-function getComplyKey(): string | undefined {
+/** Read license key: env var → shared suite → legacy tool config */
+function getLicenseKey(): string | undefined {
   const envKey = process.env.COMPLY_KEY;
-  if (envKey && envKey.trim()) return envKey.trim();
+  if (envKey?.trim()) return envKey.trim();
+  try {
+    if (fs.existsSync(SUITE_LICENSE_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(SUITE_LICENSE_FILE, 'utf8')) as { key?: string };
+      if (parsed.key?.trim()) return parsed.key.trim();
+    }
+  } catch { /* ignore */ }
   try {
     if (fs.existsSync(CONFIG_FILE)) {
-      const raw = fs.readFileSync(CONFIG_FILE, 'utf8');
-      const parsed = JSON.parse(raw) as { key?: string };
-      if (parsed.key && parsed.key.trim()) return parsed.key.trim();
+      const parsed = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) as { key?: string };
+      if (parsed.key?.trim()) return parsed.key.trim();
     }
-  } catch { /* corrupted config — ignore */ }
+  } catch { /* ignore */ }
   return undefined;
 }
 
 function isProUser(): boolean {
-  const key = getComplyKey();
+  const key = getLicenseKey();
   if (!key) return false;
   const result = validate(key);
   return result.valid && result.tier !== 'free';
 }
 
-function readUsage(): UsageRecord {
+function readSharedUsage(): SharedUsage {
   const currentMonth = new Date().toISOString().slice(0, 7);
   try {
-    if (fs.existsSync(USAGE_FILE)) {
-      const raw = fs.readFileSync(USAGE_FILE, 'utf8');
-      const parsed = JSON.parse(raw) as UsageRecord;
+    if (fs.existsSync(SUITE_USAGE_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(SUITE_USAGE_FILE, 'utf8')) as SharedUsage;
       if (parsed.month === currentMonth) return parsed;
     }
   } catch { /* corrupted — reset */ }
-  return { month: currentMonth, count: 0 };
+  return { month: currentMonth, total: 0, tools: { stepproof: 0, 'agent-comply': 0, 'agent-gate': 0 } };
 }
 
-function writeUsage(record: UsageRecord): void {
+function writeSharedUsage(record: SharedUsage): void {
   try {
-    fs.mkdirSync(CONFIG_DIR, { recursive: true });
-    fs.writeFileSync(USAGE_FILE, JSON.stringify(record), 'utf8');
+    fs.mkdirSync(SUITE_DIR, { recursive: true });
+    fs.writeFileSync(SUITE_USAGE_FILE, JSON.stringify(record, null, 2), 'utf8');
   } catch { /* degrade gracefully */ }
 }
 
 function checkUsageLimit(): boolean {
   if (isProUser()) return true;
-  const usage = readUsage();
-  if (usage.count >= FREE_MONTHLY_LIMIT) {
+  const usage = readSharedUsage();
+  if (usage.total >= FREE_MONTHLY_LIMIT) {
     process.stderr.write(
-      `\n─────────────────────────────────────────────────────────────\n` +
-      `  You've used all ${FREE_MONTHLY_LIMIT} free runs this month.\n\n` +
-      `  Preflight Team ($49/mo) unlocks:\n` +
-      `    · Unlimited runs          · Compliance dashboard\n` +
-      `    · PDF reports             · Slack alerts\n` +
-      `    · Full run history        · SARIF/JUnit CI output\n\n` +
-      `  Upgrade → ${UPGRADE_URL}\n` +
-      `─────────────────────────────────────────────────────────────\n\n`
+      `\n  You've used ${FREE_MONTHLY_LIMIT}/${FREE_MONTHLY_LIMIT} free runs this month.\n` +
+      `  Upgrade to Team for unlimited runs: ${UPGRADE_URL}\n` +
+      `  Already have a key? agent-comply activate <key>\n\n`
     );
     return false;
   }
@@ -85,17 +97,25 @@ function checkUsageLimit(): boolean {
 
 function trackUsageAfterRun(): void {
   if (isProUser()) return;
-  const usage = readUsage();
-  usage.count += 1;
-  writeUsage(usage);
-  const remaining = FREE_MONTHLY_LIMIT - usage.count;
-  process.stderr.write(
-    `\n─────────────────────────────────────────────────────────────\n` +
-    `  ${remaining} of ${FREE_MONTHLY_LIMIT} free runs remaining this month.\n` +
-    `  Team unlocks: unlimited runs · PDF reports · Slack alerts · run history\n` +
-    `  Upgrade → ${UPGRADE_URL}\n` +
-    `─────────────────────────────────────────────────────────────\n`
-  );
+  const usage = readSharedUsage();
+  usage.total += 1;
+  usage.tools[TOOL_NAME] = (usage.tools[TOOL_NAME] ?? 0) + 1;
+  writeSharedUsage(usage);
+
+  const used = usage.total;
+  const remaining = FREE_MONTHLY_LIMIT - used;
+
+  let msg: string;
+  if (remaining === 0) {
+    msg = `\n  ${used}/${FREE_MONTHLY_LIMIT} free Preflight runs used — cap reached.\n` +
+          `  Upgrade to Team for unlimited runs: ${UPGRADE_URL}\n\n`;
+  } else if (remaining <= 5) {
+    msg = `\n  ${used}/${FREE_MONTHLY_LIMIT} free Preflight runs used — ${remaining} left this month.\n` +
+          `  Team tier removes the cap · $49/mo → ${UPGRADE_URL}\n\n`;
+  } else {
+    msg = `\n  Run ${used} of ${FREE_MONTHLY_LIMIT} free Preflight runs this month.\n\n`;
+  }
+  process.stderr.write(msg);
 }
 
 const program = new Command();
@@ -103,7 +123,7 @@ const program = new Command();
 program
   .name('agent-comply')
   .description('EU AI Act compliance CLI — classify, check, and report AI system compliance')
-  .version('0.2.8')
+  .version('0.2.11')
   .addHelpText('after', `
 Examples:
   agent-comply init                                  scaffold comply.yaml
@@ -113,7 +133,7 @@ Examples:
 
 program
   .command('activate <key>')
-  .description('Store a license key for unlimited runs')
+  .description('Store a license key for unlimited runs (applies to all Preflight Suite tools)')
   .action((key: string) => {
     const result = validate(key);
     if (!result.valid) {
@@ -121,9 +141,9 @@ program
       process.exit(1);
     }
     try {
-      fs.mkdirSync(CONFIG_DIR, { recursive: true });
-      fs.writeFileSync(CONFIG_FILE, JSON.stringify({ key }), 'utf8');
-      console.log(`\nLicense activated (${result.tier} — ${result.org}). Unlimited runs enabled.\n`);
+      fs.mkdirSync(SUITE_DIR, { recursive: true });
+      fs.writeFileSync(SUITE_LICENSE_FILE, JSON.stringify({ key }), 'utf8');
+      console.log(`\nLicense activated (${result.tier} — ${result.org}). Unlimited runs enabled across all Preflight Suite tools.\n`);
     } catch (e) {
       process.stderr.write(`\nFailed to save license: ${(e as Error).message}\n\n`);
       process.exit(1);
