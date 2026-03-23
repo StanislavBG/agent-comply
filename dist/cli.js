@@ -11,7 +11,7 @@ import { runInit } from './commands/init.js';
 import { sendTelemetry } from './telemetry.js';
 import { validate } from '@bilkobibitkov/preflight-license';
 /* ── Usage-based monetization ───────────────────────────────────────── */
-const CLI_VERSION = '0.2.8';
+const CLI_VERSION = '0.2.9';
 const FREE_MONTHLY_LIMIT = 10;
 const UPGRADE_URL = 'https://buy.stripe.com/28E00l73Ccu9ePH1S08k802';
 const CONFIG_DIR = path.join(os.homedir(), '.config', 'agent-comply');
